@@ -1,0 +1,412 @@
+﻿// ERオブジェクト テスト
+
+// フォームを取得
+var frmER = application.newEREditor();
+
+//    マクロ実行後にCtrl+Zなどでアンドゥできるように、現在の状態を登録。
+frmER.registUndo("テストマクロ");           // 文字列 / メニューなどに何の操作をアンドゥするか表示するための文字列
+frmER.scale = 50;                           // 整数 / 表示倍率(20～200)
+
+var document = frmER.document;              // ドキュメントオブジェクトを取得
+
+// エンティティの登録（１）
+var entity = document.objects.addEntity();  // [整数] / エンティティを追加。引数で整数(0～)を指定すると、リスト中でその位置に挿入
+entity.setPosition("Main", 100, 500);       // 文字列, 整数, 整数 / 指定ページの位置を指定する(1/10mm単位)
+entity.pName = "Entity1";                   // 文字列 / 属性物理名
+entity.lName = "エンティティ1";             // 文字列 / 属性論理名
+entity.tag = "";                            // 文字列 / タグ（ユーザーが任意の意味に使える文字列）
+entity.comment = "テストエンティティ";      // 文字列 / コメント
+entity.noDDL = false;                       // Boolean / このエンティティに対する DDLを生成しないとき true
+entity.usingCommonAttributes = true;        // Boolean / DDL生成時に共通属性を付加するとき true
+entity.color = 0x000000;                    // 整数 / BBGGRR形式の16進数で前景色を表す。
+entity.bkColor = 0xffffff;                  // 整数 / BBGGRR形式の16進数で背景色を表す。
+entity.tableOption = "";                    // 文字列 / DDL生成時にcreate tableのオプション文字列を指定する。
+for (var aIdx = 0; aIdx < 10; aIdx++) {
+    attribute = entity.attributes.add();    // [整数] / 属性を追加。引数で整数(0～)を指定すると、リスト中でその位置に挿入
+    attribute.pName = "attr" + (aIdx + 1);  // 文字列 / 属性物理名
+    attribute.lName = "属性" + (aIdx + 1);  // 文字列 / 属性論理名
+    attribute.dataType = "CHAR(10)";        // 文字列 / データ型（またはドメイン名）
+    attribute.notNull = false;              // Boolean / NOT NULL 制約
+    attribute.keyIdx = -1;                  // 整数 / 属性が主キーの場合 0～、主キーでない場合 -1
+    if (aIdx < 2)
+        attribute.keyIdx = aIdx;            //   … １～２個目の属性は主キー
+    attribute.defaultValue = "";            // 文字列 / デフォルト値を表すSQLの式
+    attribute.comment = "コメント" + aIdx;  // 文字列 / 属性に対するコメント
+    attribute.color = -1;                   // 整数 / BBGGRR形式の16進数で文字色を表す。エンティティの色に合わせる場合は -1 を指定する。
+    attribute.option = "";                  // 文字列 / DDL生成時に属性のオプションとして指定される文字列
+}
+entity.attributes.move(5, 3);               // 6番目の属性を4番目へ移動
+entity.attributes.delete(6);                // 7番目の属性を削除        
+var index = entity.indexes.add();           // [整数] / インデックスを追加。引数で整数(0～)を指定すると、リスト中でその位置に挿入 
+index.pName = "";                           // 文字列 / インデックス物理名
+index.unique = false;                       // Boolean / ユニークインデックスのとき true
+index.attributes = "attr8,attr9";           // 文字列 / インデックスの属性名をカンマ区切りで指定（空白などを挟んではいけない）
+index.option = "";                          // 文字列 / インデックスのCREATE INDEX 時のオプションを指定
+
+// エンティティの登録（２）
+entity = document.objects.addEntity();
+entity.setPosition("Main", 500, 500);
+entity.pName = "Entity2";
+entity.lName = "エンティティ2";
+for (var aIdx = 0; aIdx < 10; aIdx++) {
+    attribute = entity.attributes.add();
+    attribute.pName = "attr" + (aIdx + 1);
+    attribute.lName = "属性" + (aIdx + 1);
+    attribute.dataType = "@CHAR(10)";
+    if (aIdx < 3)
+        attribute.keyIdx = aIdx;            //   … １～３個目の属性は主キー
+}
+
+// エンティティの登録（３）
+entity = document.objects.addEntity();
+entity.setPosition("Main", 100, 1500);
+entity.pName = "Entity3";
+entity.lName = "エンティティ3";
+for (var aIdx = 0; aIdx < 10; aIdx++) {
+    attribute = entity.attributes.add();
+    attribute.pName = "attr" + (aIdx + 1);
+    attribute.lName = "属性" + (aIdx + 1);
+    attribute.dataType = "CHAR(10)";
+    if (aIdx < 2)
+        attribute.keyIdx = aIdx;            //   … １～２個目の属性は主キー
+}
+
+// リレーションシップの登録（１）
+var relation = document.objects.addRelation();  // [整数] / リレーションシップを追加。引数で整数(0～)を指定すると、リスト中でその位置に挿入
+relation.setPosition("Main", application.lmAuto, 2000, 3000, 4000, "R", "R");   
+                    // 引数の説明
+                    //   文字列 / ページ名
+                    //   application.lm??? / lmAuto, lmVHV, lmHVH, lmVH, lmHV, lmKO, lmReverseKO
+                    //   整数 / １本目の線の位置を表す。エンティティ１の高さ（または幅）から位置を決定する。１万分率(0～10000)
+                    //   整数 / ２本目の線の位置を表す。エンティティ１とエンティティ２の間の空間から位置を決定する。１万分率(0～10000)
+                    //   整数 / ３本目の線の位置を表す。エンティティ２の高さ（または幅）から位置を決定する。１万分率(0～10000)
+                    //   "R" or "L" / 現在ページにエンティティ１のみ表示するとき、リレーションシップの線を右／左のどちらに表示するか決定する。
+                    //   "R" or "L" / 現在ページにエンティティ２のみ表示するとき、リレーションシップの線を右／左のどちらに表示するか決定する。
+relation.entityPName1 = "Entity1";              // 文字列 / リレーションシップの親側エンティティ名を指定
+relation.entityPName2 = "Entity2";              // 文字列 / リレーションシップの子側エンティティ名を指定
+relation.attributes1 = "attr1,attr2";           // 文字列 / リレーションシップの親側属性名をカンマ区切りで指定（空白などを挟んではいけない）
+relation.attributes1 = "attr1,attr2";           // 文字列 / リレーションシップの親側属性名をカンマ区切りで指定（空白などを挟んではいけない）
+
+// サブタイプの登録
+var subtype = document.objects.addSubtype();// [整数] / サブタイプを追加。引数で整数(0～)を指定すると、リスト中でその位置に挿入
+subtype.setPosition("Main", 100, 1150);
+var name = subtype.pName;                   // 文字列 / サブタイプの物理名・書き込み可能だが通常は書き込みする必要はない。リレーションシップのエンティティとして登録するときに使う。
+subtype.sharedMode = false;                 // Boolean / 共有モード(IE表記)
+subtype.completeCategory = false;           // Boolean / 確定・未確定(IDEF1X表記)
+
+// リレーションシップの登録（エンティティ1→サブタイプ）
+var relation = document.objects.addRelation();
+relation.entityPName1 = "Entity1";
+relation.attributes1 = "attr1,attr2";
+relation.entityPName2 = subtype.pName;
+relation.attributes1 = "attr1,attr2";
+
+// リレーションシップの登録（サブタイプ→サブタイプ3）
+relation = document.objects.addRelation();
+relation.entityPName1 = subtype.pName;
+relation.attributes1 = "attr1,attr2";
+relation.entityPName2 = "Entity3";
+relation.attributes1 = "attr1,attr2";
+
+// ビューの登録
+var view = document.objects.addView();      // [整数] / ビューを追加。引数で整数(0～)を指定すると、リスト中でその位置に挿入
+view.setPosition("Main", 1000, 500);
+view.pName = "View1";                       // 文字列 / ビュー物理名
+view.lName = "ビュー1";                     // 文字列 / ビュー論理名
+view.query = "select * from Entity1";       // クエリー文字列
+
+// シェイプの登録
+var shape = document.objects.addShape();    // [整数] / シェイプを追加。引数で整数(0～)を指定すると、リスト中でその位置に挿入
+shape.page = "Main";
+shape.getPosition().left = 100;
+shape.getPosition().top = 100;
+shape.getPosition().width = 700;
+shape.getPosition().height = 100;
+shape.shapeType = application.stRoundRect;      // applicaption.st??? / シェイプのタイプ 
+                                                // (stRectangle, stRoundRect, stEllipse, stRound, stCross, stStickMan, stAllowUpper, stAllowLower, stAllowLeft, stAllowRight, stDatabase, stMail, stWindow)
+shape.lineColor = 0xAA0000;                     // 整数 / BBGGRR形式の16進数で線の色を表す。
+shape.lineWidth = 4;                            // 整数 / 線の幅 (1～)
+shape.lineType = application.ltDash;            // application.lt??? / 線種 (ltSolid, ltNone, ltDash, ltDashDot, ltDashDotDot) 
+shape.brushColor = 0xFF8888;                    // 整数 / BBGGRR形式の16進数でブラシの色を表す。
+shape.brushAlpha = 180;                         // 0～255 / ブラシの不透明度
+shape.roundRectR = 50;                          // 整数 / RoundRectの場合の角の半径(1/10mm)
+shape.text = "テストマクロで作成されたER図";    // 文字列 / シェイプ上に表示する文字列
+shape.fontName = "Tahoma";                      // 文字列 / フォント名
+shape.fontSize = 14.0;                          // 実数 / フォントサイズ
+shape.fontBold = true;                          // Boolean / 太文字にするか
+shape.fontItalic = true;                        // Boolean / 斜体にするか
+shape.fontUnderline = true;                     // Boolean / 下線を引くか
+shape.fontColor = 0xAA0000;                     // 文字色
+shape.textAlign = application.taCenterCenter;   // application.ta??? / テキスト位置
+                                                // (taLeftTop, taCenterTop, taRightTop, taLeftCenter, taCenterCenter, taRightCenter, taLeftBottom, taCenterBottom, taRightBottom)
+shape.imageFileName = "";
+
+// ライン（線分）の登録
+var line = document.objects.addLine();              // [整数] / ラインを追加。引数で整数(0～)を指定すると、リスト中でその位置に挿入
+line.page = "Main";                                 // 文字列 / 表示ページ名
+line.getPosition().left = 100;                      // 整数 / X座標(1/10mm)
+line.getPosition().top = 300;                       // 整数 / Y座標(1/10mm)
+line.getPosition().width = 700;                     // 整数 / 幅(1/10mm)
+line.getPosition().height = 500;                    // 整数 / 高さ(1/10mm)
+line.lineColor = 0x00AA00;                          // 整数 / BBGGRR形式の16進数で線の色を表す。
+line.lineWidth = 2;                                 // 整数 / 線の幅 (1/96in, 1～ )
+line.lineType = application.ltDash;                 // application.lt???  / 線種 (ltSolid, ltNone, ltDash, ltDashDot, ltDashDotDot) 
+line.startLineTermType = application.lttDiamond;    // application.ltt??? / 始点・端末の形状
+line.endLineTermType = application.lttFillAllow;    // application.ltt??? / 終点・端末の形状
+line.termSize = 3;                                  // 1～5 / 端末形状のサイズ
+
+// コメントの登録
+var comment = document.objects.addComment();        // [整数] / ラインを追加。引数で整数(0～)を指定すると、リスト中でその位置に挿入
+comment.page = "Main";                              // 文字列 / 表示ページ名
+var position = comment.getPosition();               // 位置を取得
+position.left = 1000;                               // 整数 / X座標(1/10mm)
+position.top = 1000;                                // 整数 / Y座標(1/10mm)
+position.width = 700;                               // 整数 / 幅(1/10mm)
+position.height = 100;                              // 整数 / 高さ(1/10mm)
+comment.comment = "コメント";                       // 文字列 / コメント
+comment.fontName = "Tahoma";                        // 文字列 / フォント名
+comment.fontSize = 14.0;                            // 実数 / フォントサイズ
+comment.fontBold = true;                            // Boolean / 太文字にするか
+comment.fontItalic = true;                          // Boolean / 斜体にするか
+comment.fontUnderline = true;                       // Boolean / 下線を引くか
+comment.fontColor = 0xAA0000;                       // 整数 / BBGGRR形式の16進数で文字色を表す。
+comment.lineColor = 0xAA0000;                       // 整数 / BBGGRR形式の16進数で線の色を表す。
+comment.bkColor = 0xFFFFCC;                         // 整数 / BBGGRR形式の16進数で背景色を表す。
+
+
+// ドキュメントのプロパティ
+document.currentPage = document.currentPage;
+document.projectName = document.projectName;
+document.author = document.author;
+document.maxEntityRowShow = document.maxEntityRowShow;
+document.readOnlyRecommend = document.readOnlyRecommend;
+document.logicalView = document.logicalView;
+document.decodeDomain = document.decodeDomain;
+document.viewFormat = document.viewFormat;
+document.useNondependenceDashLine = document.useNondependenceDashLine;
+document.fontName = document.fontName;
+document.fontSize = document.fontSize;
+document.headerLeft = document.headerLeft;
+document.headerCenter = document.headerCenter;
+document.headerRight = document.headerRight;
+document.footerLeft = document.footerLeft;
+document.footerCenter = document.footerCenter;
+document.footerRight = document.footerRight;
+document.showPageoutRelation = document.showPageoutRelation;
+document.showTag = document.showTag;
+
+// DDL生成時のプロパティ
+document.rdbmsTypeName = document.rdbmsTypeName;
+document.generateComment = document.generateComment;
+document.generateDropTableStatement = document.generateDropTableStatement;
+document.dropTableIfExists = document.dropTableIfExists;
+document.enableTableOption = document.enableTableOption;
+document.createPkIndex = document.createPkIndex;
+document.createFk = document.createFk;
+document.fkOnDeleteOption = document.fkOnDeleteOption;
+document.fkOnUpdateOption = document.fkOnUpdateOption;
+document.createFK_ParentCard1Only = document.createFK_ParentCard1Only;
+document.fkParentIndex = document.fkParentIndex;
+document.generateCommentStatement = document.generateCommentStatement;
+document.generateCommentStatement_LName = document.generateCommentStatement_LName;
+document.generateCommentStatement_Comment = document.generateCommentStatement_Comment;
+document.defaultPkName = document.defaultPkName;
+document.defaultPkIndexName = document.defaultPkIndexName;
+document.defaultIndexName = document.defaultIndexName;
+document.defaultFkName = document.defaultFkName;
+
+// ページの追加（１）
+var page = document.pages.add();            // [整数] / ページを追加。引数で整数(0～)を指定すると、リスト中でその位置に挿入
+page.name = "新しいページ1";
+page.viewMode = application.vmAttribute;    // application.vm??? / エンティティの表示モードを指定
+page.paperSize = application.psA3Landscape; // A3横
+page.color = 0x00FFCCCC;                    // 0x00BBGGRR
+ 
+                                            // (vmEntity, vmKey, vmAttribute, vmAttrAndType, vmAttrAndType2, vmAttrLandP, vmAttrLandPandType, vmAttrLandPandType2)
+// ページの移動
+var page = document.pages.add(0);
+page.name = "新しいページ2";
+document.pages.move(0, 1);                  // 文字列|整数, 整数 / １番目のページを２番目へ移動。第1引数はページ名で指定可能。
+
+// ページの削除
+document.pages.delete("新しいページ2");     // 文字列|整数 / 指定のページを削除する（オブジェクトの配置されているページは削除不可）
+
+// ドメインの追加
+document.domains.clear();
+var domain = document.domains.add("名称初期値", "データ型初期値");  // 文字列, 文字列 / ドメインを登録する
+domain.name = "文字列";        // 文字列 / ドメインの名前
+domain.dataType = "@CHAR";     // 文字列 / データ型（またはドメイン名）
+// ドメインの移動
+domain = document.domains.add("ドメイン２", "CHAR");
+document.domains.move(1, 0);   // 文字列|整数, 整数 / ２番目のドメインを１番目へ移動。第1引数はドメイン名で指定可能。
+// ドメインの削除
+document.domains.delete(0);    // 文字列|整数 / １番目のドメインを削除（第1引数はページ名で指定可能。）
+
+// 共通属性の追加
+var attribute = document.commonAttributes.add();
+attribute.pName = "commonAttr1";
+attribute.lName = "共通属性2";
+attribute.dataType = "CHAR(10)";
+
+// 共通属性の移動
+var attribute = document.commonAttributes.add();
+attribute.pName = "commonAttr2";
+document.commonAttributes.move(1, 0);   // 文字列|整数, 整数 / ２番目のドメインを１番目へ移動。第1引数はドメイン名で指定可能。
+
+
+// 共通属性の削除
+document.commonAttributes.delete("commonAttr2");
+
+
+// すべて未選択状態にする
+document.selectedObjects.clear();
+
+// エンティティの検索
+entity = document.objects.search("Entity1");
+if (entity != null) {
+    entity.selected = true;
+}
+
+
+// すべてのオブジェクトを列挙して操作
+for (var idx in document.objects) {
+    var o = document.objects[idx];    
+    // オブジェクトの位置の操作
+    // マルチページオブジェクトとは、エンティティ・ビュー・サブタイプ
+    // ページオブジェクトとは、シェイプ・線分(ライン)・コメント
+    // リレーションシップはマルチページオブジェクトでもページオブジェクトでもない
+    var position = null;
+    if (o.isMultiPageObject())        //    Entity・View・Subtype
+        position = o.getPosition(document.currentPage);    
+    else if (o.isPageObject())        //    Shape・Line
+        position = o.getPosition();
+    if (position != null) {
+        position.left = position.left;
+        position.top = position.top;
+        position.width = position.width;
+        position.height = position.height;
+        position.useSize = position.useSize;    // Boolean / width, height プロパティを利用するとき true となる。Entity, View のときで「サイズを自動的に決定する」にしない場合 true になる。シェイプや線分も true となる。
+    }
+    //    ページを指定した位置の操作設定（マルチページオブジェクトとリレーションシップ）
+    if (o.isMultiPageObject()) {                    //    Entity・View・Subtype
+        o.setPosition("新しいページ1", 1000, 1000);            // 文字列, 整数, 整数 / ページ名とX,Y座標を指定する。ページに表示していない場合は新たに表示され、すでに表示されている場合は位置が更新される。
+        o.deletePosition("新しいページ2");        // 文字列 / ページから非表示にする
+        var b = o.checkPageShow("新しいページ1");            // 文字列 / 特定のページで表示されているか調べる    
+    } else if (o.objectType == "Relation") {        //    Entity・View・Subtype
+        o.setPosition("新しいページ1", application.lmAuto, 5000, 5000, 5000, "R", "R");
+        o.deletePosition("新しいページ2");            //    ページから非表示にする
+        var b = o.checkPageShow("新しいページ1");    // 文字列 / 特定のページで表示されているか調べる    
+    }    
+
+    if (o.objectType == "Entity") {
+        //    オブジェクトはエンティティであった
+        println(o.pName);
+        o.pName = o.pName;                                    // 文字列 / 属性物理名
+        o.lName = o.lName;                                    // 文字列 / 属性論理名
+        o.tag = o.tag;                                        // 文字列 / タグ（任意の文字列）
+        o.comment = o.comment;                                // 文字列 / コメント
+        o.noDDL = o.noDDL;                                    // Boolean / このエンティティに対する DDLを生成しないとき true
+        o.usingCommonAttributes = o.usingCommonAttributes;    // Boolean / DDL生成時に共通属性を付加するとき true
+        o.color = o.color;                                    // 整数 / BBGGRR形式の16進数で前景色を表す。
+        o.bkColor = o.bkColor;                                // 整数 / BBGGRR形式の16進数で背景色を表す。
+        //    エンティティの属性のループ
+        var attribute;
+        for (var aIdx in o.attributes) {
+            attribute = o.attributes[aIdx];
+            attribute.pName = attribute.pName;                    // 文字列 / 属性物理名
+            attribute.lName = attribute.lName;                    // 文字列 / 属性論理名
+            attribute.dataType = attribute.dataType;            // 文字列 / データ型（またはドメイン名）
+            attribute.notNull = attribute.notNull;                // Boolean / NOT NULL 制約
+            attribute.keyIdx = attribute.keyIdx;                // 整数 / 属性が主キーの場合 0～、主キーでない場合 -1
+            attribute.defaultValue = attribute.defaultValue;    // 文字列 / デフォルト値を表すSQLの式
+            attribute.comment = attribute.comment;                // 文字列 / 属性に対するコメント
+            attribute.color = attribute.color;                    // 整数 / BBGGRR形式の16進数で文字色を表す。エンティティの色に合わせる場合は -1 を指定する。
+            attribute.option = attribute.option;                // 文字列 / DDL生成時に属性のオプションとして指定される文字列
+        }
+        
+        //    エンティティのインデックスのループ
+        for (var iIdx in o.indexes) {
+            var index = o.indexes[iIdx];
+            index.pName = index.pName;                // 文字列 / インデックス物理名
+            index.attributes = index.attributes;    // 文字列 / インデックスに使われる属性物理名をカンマでつないだもの
+            index.option = index.option;            // 文字列 / DDL生成時にインデックスのオプションとして指定される文字列
+        }
+    } else if (o.objectType == "Relation") {
+        //    オブジェクトはリレーションシップであった
+        println("リレーションシップ");
+        o.entityPName1 = o.entityPName1;
+        o.entityPName2 = o.entityPName2;
+        position = o.getPosition("main");
+        position.lineMode = position.lineMode;    //    Application.lm??? / lmAuto, lmVHV, lmHVH, lmVH, lmHV, lmKO, lmReverseKO
+        position.BarPos1 = position.BarPos1;
+        position.BarPos2 = position.BarPos1;
+        position.BarPos3 = position.BarPos1;
+    } else if (o.objectType == "Comment") {
+        //    オブジェクトはコメントであった
+        println("コメント");
+        o.comment = o.comment;
+        o.fontName = o.fontName;
+        o.fontSize = o.fontSize;
+        o.fontBold = o.fontBold;
+        o.fontItalic = o.fontItalic;
+        o.fontUnderline = o.fontUnderline;
+        o.fontColor = o.fontColor;
+        o.lineColor = o.lineColor;
+        o.bkColor = o.bkColor;
+    } else if (o.objectType == "View") {
+        //    オブジェクトはビューであった
+        println(o.pName);
+        o.query = o.query;    //    文字列 / クエリー(SELECT文)
+        for (var aIdx in o.attributes) {
+            var attribute = o.attributes[aIdx];
+            attribute.pName;    //    文字列 / ビューの属性はpNameのみアクセス可能。書き込みは行わないこと。
+        }
+    } else if (o.objectType == "Subtype") {
+        //    オブジェクトはサブタイプであった
+        println("サブタイプ");
+        o.sharedMode = o.sharedMode;                // Boolean / 排他／共有(IE表記用)
+        o.completeCategory = o.completeCategory;    // Boolean / 確定／未確定(IDEF1X表記用)
+    } else if (o.objectType == "Line") {
+        //    オブジェクトはライン（線分）であった
+        println("ライン（線分）");
+        o.lineColor = o.lineColor;
+        o.lineWidth = o.lineWidth;
+        o.lineType = o.lineType;
+        o.startLineTermType = o.startLineTermType;
+        o.endLineTermType = o.endLineTermType;
+        o.termSize = o.termSize;
+    } else if (o.objectType == "Shape") {
+        //    オブジェクトはシェイプであった
+        println("シェイプ");
+        o.shapeType = o.shapeType;
+        o.lineColor = o.lineColor;
+        o.lineWidth = o.lineWidth;
+        o.lineType = o.lineType;
+        o.brushColor = o.brushColor;
+        o.brushAlpha = o.brushAlpha;
+        o.roundRectR = o.roundRectR;
+        o.text = o.text;
+        o.fontName = o.fontName;
+        o.fontSize = o.fontSize;
+        o.fontBold = o.fontBold;
+        o.fontItalic = o.fontItalic;
+        o.fontUnderline = o.fontUnderline;
+        o.fontColor = o.fontColor;
+        o.textAlign = o.textAlign;
+        o.imageFileName = o.imageFileName;
+    }
+    o.selected = !o.selected;            //    選択状態を反転する
+}
+
+// オブジェクトの順序を入れ替え
+document.objects.move(1, 0);    // 整数, 整数 / ２番目のオブジェクトを１番目へ
+
+// オブジェクトを削除する
+document.objects.addEntity(0);  // オブジェクトのリストの先頭へダミーのエンティティを追加
+document.objects.delete(0);     // 整数 / １番目のオブジェクトを削除
+
+
+document.modified = true;       // document以下のオブジェクトを変更したら必ず true に変更すること
+frmER.repaint();                // document以下のオブジェクトを変更したら必ず最後に呼び出すこと
+
+

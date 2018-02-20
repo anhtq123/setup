@@ -1,0 +1,18 @@
+﻿
+var conn = application.dbTree.getSelectedDatabaseConnection();
+var currentSchema = conn.getSchemaName(); 
+var objectList = conn.getObjectList(currentSchema);
+
+println("対象スキーマ : " + currentSchema);
+println("");
+for (var idx = 0; idx < objectList.length; idx++) {
+    var objectInfo = objectList[idx];
+    var fullObjectName = objectInfo.name;
+    println("-- " + objectInfo.name + " (" + objectInfo.objectTypeName + ") : " + objectInfo.comment);
+    
+    var source = conn.getSource(fullObjectName, objectInfo.objectTypeName);
+    
+    println(source + ";");
+    
+    println("");
+}
