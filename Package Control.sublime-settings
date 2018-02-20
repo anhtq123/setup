@@ -1,0 +1,18 @@
+{
+	"bootstrapped": true,
+	"http_proxy": "172.18.1.2:8080",
+	"https_proxy": "172.18.1.2:8080",
+	"in_process_packages":
+	[
+	],
+	"installed_packages":
+	[
+		"Ember Template Component Split View",
+		"Emmet",
+		"Emmet Css Snippets",
+		"Package Control",
+		"Vue Syntax Highlight"
+	],
+	"proxy_password": "j2fnsiy4",
+	"proxy_username": "0900604"
+}
